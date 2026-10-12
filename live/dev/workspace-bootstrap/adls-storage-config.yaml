@@ -5,3 +5,6 @@ storage_account:
   container_name: "dbx-architect-lab-dev"
   account_tier: "Standard"
   account_replication_type: "LRS"
+  # Delete the catalog and external location on destroy even if they still have contents or dependents (for example
+  # the dropped test table the validation notebook leaves behind, restorable for 7 days).
+  force_destroy: true

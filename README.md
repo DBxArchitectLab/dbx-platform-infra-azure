@@ -45,6 +45,8 @@ This repository provisions an Azure Databricks workspace with:
   - Workspace default catalog set to that catalog
   - Databricks cluster policies (from `cluster-policy-config.yaml`)
   - Databricks secret scope (from `secret-scope-config.yaml`)
+  - Validation notebook `/Shared/platform/workspace-bootstrap-validation`, with this environment's expected values
+    (`modules/workspace_bootstrap/notebooks/workspace-bootstrap-validation.py`; see DEPLOYMENT.md section 7)
   - Clusters and SQL warehouses (`cluster-config.yaml`, `sql-warehouse-config.yaml`) are defined but currently
     disabled: their modules are commented out in `modules/workspace_bootstrap/main.tf`
 

@@ -8,6 +8,9 @@ resource "databricks_catalog" "default" {
   comment      = "Default Unity Catalog bootstrap catalog."
   storage_root = local.catalog_storage_root
 
+  # Delete even if the catalog still contains schemas or tables.
+  force_destroy = var.force_destroy
+
   # Only workspaces bound below can see the catalog; other workspaces on the shared metastore can't.
   isolation_mode = "ISOLATED"
 }

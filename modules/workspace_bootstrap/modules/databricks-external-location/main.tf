@@ -60,6 +60,10 @@ resource "databricks_external_location" "this" {
   comment         = "Bootstrap external location."
   owner           = local.external_location_owner
   force_update    = true
+
+  # Delete even when Unity Catalog still lists dependents. Dropped managed tables stay restorable (UNDROP) for up to
+  # 7 days and keep blocking deletion meanwhile; the validation notebook's write test leaves one such table.
+  force_destroy = var.force_destroy
 }
 
 resource "databricks_grants" "external_location" {
