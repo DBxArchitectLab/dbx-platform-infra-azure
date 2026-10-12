@@ -32,5 +32,7 @@ resource "databricks_grants" "catalog" {
     }
   }
 
-  depends_on = [databricks_catalog.default]
+  # ISOLATED catalog: grants must be managed while the workspace is still bound, so on destroy
+  # they're removed before the binding (otherwise "Catalog ... is not accessible in current workspace").
+  depends_on = [databricks_workspace_binding.catalog]
 }
