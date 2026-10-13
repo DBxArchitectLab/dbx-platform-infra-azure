@@ -78,3 +78,9 @@ variable "external_location_grant_privileges" {
     "CREATE_EXTERNAL_TABLE",
   ]
 }
+
+variable "force_destroy" {
+  description = "Allow Terraform to delete the external location even if Unity Catalog still lists dependents"
+  type        = bool
+  default     = false
+}

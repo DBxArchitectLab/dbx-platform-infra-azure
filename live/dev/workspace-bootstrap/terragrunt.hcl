@@ -41,6 +41,10 @@ inputs = merge(
     workspace_id          = dependency.workspace.outputs.workspace_id
     workspace_resource_id = dependency.workspace.outputs.workspace_resource_id
 
+    # Expected values for the validation notebook (empty metastore ID skips that check).
+    metastore_id              = get_env("DATABRICKS_METASTORE_ID", "")
+    platform_admin_group_name = local.config.identity.platform_admin_group_name
+
     region              = local.config.region
     resource_group_name = local.config.resource_group_name
 
@@ -48,6 +52,7 @@ inputs = merge(
     container_name           = local.adls_config.storage_account.container_name
     account_tier             = try(local.adls_config.storage_account.account_tier, "Standard")
     account_replication_type = try(local.adls_config.storage_account.account_replication_type, "LRS")
+    storage_force_destroy    = try(local.adls_config.storage_account.force_destroy, false)
 
     access_connector_name = local.access_connector_config.access_connector.name
 

@@ -23,6 +23,20 @@ variable "workspace_id" {
   type        = number
 }
 
+variable "metastore_id" {
+  description = "Expected Unity Catalog metastore ID, checked by the validation notebook; null or empty skips that check"
+  type        = string
+  nullable    = true
+  default     = null
+}
+
+variable "platform_admin_group_name" {
+  description = "Account group expected to be workspace admin, checked by the validation notebook; null skips that check"
+  type        = string
+  nullable    = true
+  default     = null
+}
+
 variable "resource_group_name" {
   description = "Resource group where ADLS and the Databricks access connector are created"
   type        = string
@@ -41,6 +55,12 @@ variable "storage_account_name" {
 variable "container_name" {
   description = "Blob container used for Unity Catalog external location and catalog managed paths"
   type        = string
+}
+
+variable "storage_force_destroy" {
+  description = "Allow Terraform to delete the Unity Catalog data on destroy: the catalog and external location even if they still have contents or dependents (the storage account is deleted with its contents regardless)"
+  type        = bool
+  default     = false
 }
 
 variable "account_tier" {

@@ -8,5 +8,8 @@ terraform {
     databricks = {
       source = "databricks/databricks"
     }
+    time = {
+      source = "hashicorp/time"
+    }
   }
 }

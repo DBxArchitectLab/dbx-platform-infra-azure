@@ -270,7 +270,7 @@ Then copy the metastore ID from the account console (**Catalog → your metastor
 | Order | Stack | Creates |
 | --- | --- | --- |
 | 1 | `dev-dbxarchitectlab-workspace` | VNet, subnets, NSG, private DNS, private endpoints, workspace, metastore assignment, admin group assignment |
-| 2 | `dev-dbxarchitectlab-workspace-bootstrap` | ADLS account and container, access connector, storage credential, external location, catalog (bound to this workspace only), workspace default catalog, cluster policies, secret scope |
+| 2 | `dev-dbxarchitectlab-workspace-bootstrap` | ADLS account and container, access connector, storage credential, external location, catalog (bound to this workspace only), workspace default catalog, cluster policies, secret scope, validation notebook |
 
 The workspace takes roughly 10–15 minutes to create.
 
@@ -281,6 +281,41 @@ Each environment needs its own resource group (step 2.2) and User Access Adminis
 prod was missed once.
 
 ## 7. Verify
+
+### Validation notebook
+
+The bootstrap stack deploys the same validation notebook to every workspace:
+`/Shared/platform/workspace-bootstrap-validation` (source:
+`modules/workspace_bootstrap/notebooks/workspace-bootstrap-validation.py`). Next to it,
+`/Shared/platform/workspace-bootstrap-validation.json` holds that environment's expected values (catalog, storage
+root, external location, storage credential and its access connector, grants, cluster policies, secret scope, metastore ID,
+admin group), written from the same inputs that provisioned them.
+
+To run it in each environment's workspace:
+
+1. Sign in as a member of `DBX_Architect_Lab_Admin`.
+2. Open **Workspace → Shared → platform → workspace-bootstrap-validation**.
+3. Attach a Unity Catalog-enabled compute: serverless, or a cluster in standard/shared or dedicated/single-user
+   access mode. A classic cluster also tests the workspace network (ADLS reachability, outbound internet); serverless tests Databricks' serverless network instead.
+4. **Run all**. Each cell has a title naming what it validates. The last cell, **Validation summary**, shows every
+   check and fails the notebook if any check failed, so it can also run as a job.
+
+| Widget | Default | Purpose |
+| --- | --- | --- |
+| `config_path` | `/Workspace/Shared/platform/workspace-bootstrap-validation.json` | Expected values for this environment |
+| `run_write_tests` | `true` | `false` for a read-only run: skips writing a file to storage and creating a temporary schema and table |
+
+Write tests only create temporary objects and remove them in the same cell: a file under
+`abfss://<container>@<storage-account>.dfs.core.windows.net/_bootstrap_validation/` and a `bootstrap_validation_<id>` schema in the environment's catalog.
+Unity Catalog keeps the dropped test table restorable (UNDROP) for up to 7 days, during which it still counts as a
+dependent of the external location; the bootstrap stack deletes the catalog and external location with
+`force_destroy` (from `storage_account.force_destroy` in `adls-storage-config.yaml`), so it doesn't block a destroy. On destroy, Terraform deletes the notebook
+and its JSON file before the objects they describe.
+
+Statuses: **PASS**; **FAIL** (fix needed; see the check's detail and **Troubleshooting**); **WARN** (no public internet from the driver, expected when the VNet has no NAT gateway or other egress);
+**SKIP** (check disabled by config or widget); **INFO** (context, such as the running user and runtime).
+
+### Manual checks
 
 - Open the workspace URL (Azure portal → the Databricks workspace → **Launch workspace**).
 - **Catalog:** the catalog from `catalog-config.yaml` is listed. Under **Details → Workspaces** it shows
@@ -318,6 +353,7 @@ DROP CATALOG IF EXISTS dbw_dbx_architect_lab_dev CASCADE;   -- _uat in uat, _pro
 | Storage account name already taken | Pick a different name in `adls-storage-config.yaml` (names are global) |
 | Permission denied creating catalog / external location | Service principal isn't a metastore admin (step 3) |
 | `dbxarchitectlab_dev` isn't visible from the uat or prod workspace (and so on) | Expected: each catalog is isolated to its own workspace |
+| Destroy: `cannot delete external location: ... because the location has ... dependent managed tables` | A dropped managed table (for example from the validation notebook's write test) stays restorable for up to 7 days and still counts as a dependent. The catalog and external location use `force_destroy`, following `storage_account.force_destroy` in `adls-storage-config.yaml`. `destroy` reads that setting from state, so a stack deployed before the validation notebook was added must run `apply` once, then `destroy` |
 
 ## Running locally instead
 
