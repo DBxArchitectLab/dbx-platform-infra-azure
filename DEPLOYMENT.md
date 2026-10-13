@@ -296,7 +296,7 @@ To run it in each environment's workspace:
 1. Sign in as a member of `DBX_Architect_Lab_Admin`.
 2. Open **Workspace → Shared → platform → workspace-bootstrap-validation**.
 3. Attach a Unity Catalog-enabled compute: serverless, or a cluster in standard/shared or dedicated/single-user
-   access mode. A classic cluster also tests the workspace network (ADLS reachability, outbound internet); serverless tests Databricks' serverless network instead.
+   access mode. A classic cluster also tests the workspace network (ADLS reachability, outbound internet); serverless tests Databricks' serverless network instead, and is subject to the account's serverless network policy: if that policy blocks the Unity Catalog storage account, the storage write tests report WARN and are skipped (see Troubleshooting).
 4. **Run all**. Each cell has a title naming what it validates. The last cell, **Validation summary**, shows every
    check and fails the notebook if any check failed, so it can also run as a job.
 
@@ -353,6 +353,7 @@ DROP CATALOG IF EXISTS dbw_dbx_architect_lab_dev CASCADE;   -- _uat in uat, _pro
 | Storage account name already taken | Pick a different name in `adls-storage-config.yaml` (names are global) |
 | Permission denied creating catalog / external location | Service principal isn't a metastore admin (step 3) |
 | `dbxarchitectlab_dev` isn't visible from the uat or prod workspace (and so on) | Expected: each catalog is isolated to its own workspace |
+| Validation notebook WARN: `blocked by the account's serverless network policy` | The notebook ran on serverless compute. External locations bound to the workspace are allowed for serverless automatically, but a new binding can take up to 24 hours to reach serverless compute. Run the notebook on a classic cluster (it tests the network this repo builds), or re-run on serverless later. On the Enterprise tier you can also add the storage account to the network policy's allowed storage destinations (account console > Security > Networking > Context-based ingress & egress control); that option doesn't exist on Premium |
 | Destroy: `cannot delete external location: ... because the location has ... dependent managed tables` | A dropped managed table (for example from the validation notebook's write test) stays restorable for up to 7 days and still counts as a dependent. The catalog and external location use `force_destroy`, following `storage_account.force_destroy` in `adls-storage-config.yaml`. `destroy` reads that setting from state, so a stack deployed before the validation notebook was added must run `apply` once, then `destroy` |
 
 ## Running locally instead
