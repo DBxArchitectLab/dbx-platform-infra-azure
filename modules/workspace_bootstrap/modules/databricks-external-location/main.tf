@@ -33,6 +33,19 @@ resource "azurerm_role_assignment" "access_connector_storage_blob_data_contribut
   }
 }
 
+# Azure role assignments take a while to apply (usually 1-2 minutes, occasionally longer). Creating the external
+# location validates access straight away, and before the role applies ADLS answers 403 ("This request is not
+# authorized to perform this operation using this permission"). The trigger re-runs the wait only when the role
+# assignment is replaced.
+resource "time_sleep" "rbac_propagation" {
+  count           = var.manage_access_connector_storage_rbac ? 1 : 0
+  create_duration = "120s"
+
+  triggers = {
+    role_assignment_id = azurerm_role_assignment.access_connector_storage_blob_data_contributor[0].id
+  }
+}
+
 resource "databricks_storage_credential" "this" {
   name = var.storage_credential_name
 
@@ -64,6 +77,8 @@ resource "databricks_external_location" "this" {
   # Delete even when Unity Catalog still lists dependents. Dropped managed tables stay restorable (UNDROP) for up to
   # 7 days and keep blocking deletion meanwhile; the validation notebook's write test leaves one such table.
   force_destroy = var.force_destroy
+
+  depends_on = [time_sleep.rbac_propagation]
 }
 
 resource "databricks_grants" "external_location" {
