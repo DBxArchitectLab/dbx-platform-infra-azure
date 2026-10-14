@@ -37,13 +37,20 @@ Values used throughout this guide (change them if yours differ):
 
 | Name | Value | Defined in |
 | --- | --- | --- |
-| Region | `centralus` | `live/*/config.yaml`, `live/metastore/config.yaml` |
+| Region | `westus` | `live/*/config.yaml`, `live/metastore/config.yaml` |
 | Shared resource group (state + metastore storage) | `rg-dbx-architect-lab` | `live/root.hcl`, workflow `TF_STATE_RESOURCE_GROUP` |
 | Shared storage account | `adlsdbxarchitectlab` | `live/root.hcl`, workflow `TF_STATE_STORAGE_ACCOUNT`, `live/metastore/config.yaml` |
 | State container | `tfstate` | `live/root.hcl` |
 | Metastore root container | `dbx` | `live/metastore/config.yaml` |
 | Environment resource groups | `rg-dbx-architect-lab-{dev,uat,prod}` | `live/<env>/config.yaml` |
 | GitHub repo | `DBxArchitectLab/dbx-platform-infra-azure` (owner ID `336295900`, repo ID `1398888571`) | federated credential subjects |
+
+> **Changing the region of a deployed platform.** Azure can't move a workspace, VNet or storage account between
+> regions, and a metastore's region is fixed, so a region change replaces everything. Don't apply it over a running
+> deployment. Destroy first, in this order: each environment's `workspace-bootstrap`, then its `workspace` (dev, uat,
+> prod), then the `metastore`. Then apply in the new region in the usual order (section 6) and update the
+> `DATABRICKS_METASTORE_ID` secret in all three environments, because the new metastore has a new ID. The shared
+> resource group and the state and metastore storage account stay where they were created.
 
 ---
 
@@ -79,7 +86,7 @@ The manual equivalent follows. Run it as a user with **Owner** on the subscripti
 
 ```bash
 SUB="<subscription-id>"
-REGION="centralus"
+REGION="westus"
 az login
 az account set --subscription "$SUB"
 ```
@@ -199,7 +206,7 @@ environment, then delete the old credential.
 3. **Create the group `DBX_Architect_Lab_Admin`** (**User management → Groups**) and add the service principal
    and your user to it. The workspace stack makes this group a workspace admin.
 4. **Check for an automatic metastore.** Go to **Catalog** in the account console. If a metastore already
-   exists in `centralus` (Databricks creates one automatically with the first workspace in a region), the
+   exists in `westus` (Databricks creates one automatically with the first workspace in a region), the
    `metastore` stack will fail, because an account can have only one metastore per region. Either:
    - **Use it:** skip the `metastore` stack, copy that metastore's ID for step 4, and make
      `DBX_Architect_Lab_Admin` its admin; or

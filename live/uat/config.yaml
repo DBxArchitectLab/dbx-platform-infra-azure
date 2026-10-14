@@ -1,6 +1,6 @@
 resource_group_name: "rg-dbx-architect-lab-uat"
 workspace_name: "dbw-dbx-architect-lab-uat"
-region: "centralus"
+region: "westus"
 pricing_tier: "premium"
 managed_resource_group_name: "rg-dbx-architect-lab-uat-managed"
 

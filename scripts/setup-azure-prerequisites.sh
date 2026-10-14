@@ -6,7 +6,7 @@
 #
 # Options:
 #   --subscription ID      Target subscription (required; or set ARM_SUBSCRIPTION_ID)
-#   --region NAME          Azure region (default: centralus)
+#   --region NAME          Azure region (default: westus)
 #   --environments "LIST"  Environments to prepare (default: "dev uat prod")
 #   --sp-name NAME         Deployment service principal display name (default: sp-dbx-platform-infra)
 #   --github-repo O/R      GitHub repo for federated credentials (default: taken from the git remote)
@@ -37,7 +37,7 @@ METASTORE_CONTAINER="dbx"
 ENV_RG_PREFIX="rg-dbx-architect-lab"
 
 SUB="${ARM_SUBSCRIPTION_ID:-}"
-REGION="centralus"
+REGION="westus"
 ENVIRONMENTS="dev uat prod"
 SP_NAME="sp-dbx-platform-infra"
 GITHUB_REPO=""

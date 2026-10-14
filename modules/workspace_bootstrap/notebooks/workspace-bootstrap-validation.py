@@ -194,7 +194,7 @@ if metastore_id:
     check(SECTION, "Metastore region matches the workspace region", metastore_region)
 
 def metastore_visible_from_spark():
-    current = spark.sql("SELECT current_metastore()").first()[0]  # e.g. azure:centralus:<metastore-id>
+    current = spark.sql("SELECT current_metastore()").first()[0]  # e.g. azure:westus:<metastore-id>
     return bool(metastore_id) and metastore_id in current, current
 
 
