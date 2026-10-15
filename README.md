@@ -190,3 +190,11 @@ The job temporarily allow-lists the runner's egress IP on the Terraform state st
 before running Terragrunt, and removes it again when the job finishes (even on failure). The state storage
 account and resource group are set as `TF_STATE_*` variables at the top of the workflow and must match
 `remote_state` in `live/root.hcl`.
+
+## Contributing and license
+
+This repository is part of [DBX Architect Lab](https://www.youtube.com/@DBxArchitectLab): the videos walk through the architecture and the
+deployment step by step.
+
+Issues and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). Licensed under the
+[Apache License 2.0](LICENSE); see also [NOTICE](NOTICE).
