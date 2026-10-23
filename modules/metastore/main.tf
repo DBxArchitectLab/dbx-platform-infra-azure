@@ -6,6 +6,9 @@ resource "databricks_metastore" "this" {
   region        = var.region
   force_destroy = var.force_destroy
   owner         = var.owner
+
+  # Null leaves the provider's default (1 year). Set it explicitly to keep an adopted metastore's current value.
+  delta_sharing_recipient_token_lifetime_in_seconds = var.delta_sharing_recipient_token_lifetime_in_seconds
 }
 
 resource "databricks_metastore_data_access" "default" {

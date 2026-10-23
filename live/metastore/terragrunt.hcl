@@ -38,6 +38,10 @@ inputs = merge(
     storage_root                 = try(local.config.metastore.storage_root, null)
     force_destroy                = try(local.config.metastore.force_destroy, false)
     owner                        = try(local.config.metastore.owner, null)
+
+    delta_sharing_recipient_token_lifetime_in_seconds = try(
+      local.config.metastore.delta_sharing_recipient_token_lifetime_in_seconds, null)
+
     metastore_data_access_name   = try(local.config.metastore.data_access_name, "default")
     access_connector_resource_id = try(local.config.metastore.access_connector_resource_id, null)
   }

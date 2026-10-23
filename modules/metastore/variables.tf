@@ -33,6 +33,12 @@ variable "owner" {
   description = "Optional Unity Catalog owner for the metastore."
 }
 
+variable "delta_sharing_recipient_token_lifetime_in_seconds" {
+  type        = number
+  default     = null
+  description = "Delta Sharing recipient token lifetime. 0 means tokens never expire. Null leaves the provider default."
+}
+
 variable "metastore_data_access_name" {
   type        = string
   default     = "default"

@@ -15,6 +15,9 @@ metastore:
   force_destroy: false
   # Optional: Unity Catalog owner principal name (e.g. group or user).
   owner: "DBX_Architect_Lab_Admin"
+  # Delta Sharing recipient token lifetime, in seconds; 0 means tokens never expire. Pinned to the adopted
+  # metastore's current value, so the import doesn't change it (the provider default is 1 year, 31536000).
+  delta_sharing_recipient_token_lifetime_in_seconds: 0
   # Optional: default data access using Azure Databricks Access Connector (resource ID).
   # access_connector_resource_id: "/subscriptions/.../resourceGroups/.../providers/Microsoft.Databricks/accessConnectors/..."
   data_access_name: "default"
