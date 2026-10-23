@@ -6,6 +6,11 @@ resource "databricks_metastore" "this" {
   region        = var.region
   force_destroy = var.force_destroy
   owner         = var.owner
+
+  # Delta Sharing settings: the provider requires both or neither. Null leaves the provider defaults; set both
+  # explicitly to keep an adopted metastore's current values.
+  delta_sharing_scope                               = var.delta_sharing_scope
+  delta_sharing_recipient_token_lifetime_in_seconds = var.delta_sharing_recipient_token_lifetime_in_seconds
 }
 
 resource "databricks_metastore_data_access" "default" {
