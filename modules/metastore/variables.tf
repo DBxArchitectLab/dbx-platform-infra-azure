@@ -33,10 +33,21 @@ variable "owner" {
   description = "Optional Unity Catalog owner for the metastore."
 }
 
+variable "delta_sharing_scope" {
+  type        = string
+  default     = null
+  description = "Delta Sharing scope: INTERNAL or INTERNAL_AND_EXTERNAL. Set together with the token lifetime, or neither."
+}
+
 variable "delta_sharing_recipient_token_lifetime_in_seconds" {
   type        = number
   default     = null
-  description = "Delta Sharing recipient token lifetime. 0 means tokens never expire. Null leaves the provider default."
+  description = "Delta Sharing recipient token lifetime. 0 means tokens never expire. Set together with the scope, or neither."
+
+  validation {
+    condition     = (var.delta_sharing_recipient_token_lifetime_in_seconds == null) == (var.delta_sharing_scope == null)
+    error_message = "Set delta_sharing_scope and delta_sharing_recipient_token_lifetime_in_seconds together, or neither."
+  }
 }
 
 variable "metastore_data_access_name" {
