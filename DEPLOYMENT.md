@@ -200,11 +200,15 @@ environment, then delete the old credential.
    and your user to it. The workspace stack makes this group a workspace admin.
 4. **Check for an automatic metastore.** Go to **Catalog** in the account console. If a metastore already
    exists in `centralus` (Databricks creates one automatically with the first workspace in a region), the
-   `metastore` stack will fail, because an account can have only one metastore per region. Either:
-   - **Use it:** skip the `metastore` stack, copy that metastore's ID for step 4, and make
+   `metastore` stack can't create another, because an account can have only one metastore per region. Either:
+   - **Adopt it (recommended, and how this repository is configured):** put its ID in `metastore.import_id`
+     and its name in `metastore.name` in `live/metastore/config.yaml`, leave `storage_root` unset if it has
+     none, and deploy the `metastore` stack as below. The first plan imports it ("1 to import") instead of
+     creating anything; from then on Terraform manages it like any other resource. Use its ID for step 4.
+   - **Use it unmanaged:** skip the `metastore` stack, copy that metastore's ID for step 4, and make
      `DBX_Architect_Lab_Admin` its admin; or
-   - **Replace it:** delete it in the account console (only if nothing uses it), then deploy the
-     `metastore` stack as below.
+   - **Replace it:** delete it in the account console (only if nothing uses it), remove `import_id`, set
+     `name` and `storage_root`, then deploy the `metastore` stack as below.
 
 The service principal creates the catalog, storage credential and external location in
 `workspace-bootstrap`, so it must be a metastore admin. Setting `metastore.owner` to
@@ -260,6 +264,10 @@ selection**, lists the action, stack, path, GitHub environment and commit on the
 | Stack | Action |
 | --- | --- |
 | `metastore` | `plan`, then `apply` |
+
+With `import_id` set, the first plan should read **1 to import, 0 to add, 0 to change, 0 to destroy**. If it shows
+anything to add or destroy, stop: the name, region or storage root in `config.yaml` doesn't match the existing
+metastore. After that apply, plan reports no changes.
 
 Then copy the metastore ID from the account console (**Catalog → your metastore**) or from the
 `metastore_id` output at the end of the apply log. Set it as `DATABRICKS_METASTORE_ID` in the `dev`,

@@ -18,7 +18,7 @@ Unity Catalog metastore. Each workspace gets:
 - 3 private endpoints
 - workspace public network access, controlled by config (on in dev, uat and prod, so the workspace is reachable both
   publicly and through its private endpoints)
-- Unity Catalog metastore assignment (the metastore is provisioned by a dedicated stack)
+- Unity Catalog metastore assignment (the metastore is managed by a dedicated stack)
 - workspace admin assignment for an account-level group
 - workspace bootstrap (ADLS storage, access connector, storage credential, external location, catalog, default
   catalog, cluster policies, secret scope, validation notebook)
@@ -36,7 +36,9 @@ Unity Catalog metastore. Each workspace gets:
 ## What this creates
 
 - **Metastore layer (`metastore` stack)**
-  - Databricks Unity Catalog metastore (account-level, one per region), owned by `DBX_Architect_Lab_Admin`
+  - Databricks Unity Catalog metastore (account-level, one per region), owned by `DBX_Architect_Lab_Admin`. This
+    repository adopts the metastore Databricks created automatically in `centralus` (`metastore.import_id` in
+    `live/metastore/config.yaml`), so the stack imports it instead of creating a second one
   - Optional default metastore data access using an Azure Databricks Access Connector (when configured)
 
 - **Workspace layer (`workspace` stack)**
@@ -98,7 +100,8 @@ scripts). In short, the following must already exist:
   group makes the service principal a metastore admin, which bootstrap needs)
 - (Optional) Databricks Access Connector resource (if enabling default metastore data access)
 
-If Databricks already created a metastore in the region, the metastore stack fails; see DEPLOYMENT.md step 3.
+If Databricks already created a metastore in the region, adopt it with `metastore.import_id`, or the metastore
+stack fails trying to create a second one; see DEPLOYMENT.md step 3.
 
 Tools: Azure CLI, Terraform >= 1.8 and Terragrunt (CI uses Terraform 1.14.6 and Terragrunt 0.99.4). Providers:
 `azurerm` ~> 4.0; `databricks` >= 1.105.0; `time` ~> 0.12.
@@ -250,9 +253,10 @@ manual gate.
 Destroy in reverse order: `<env>-dbxarchitectlab-workspace-bootstrap`, then `<env>-dbxarchitectlab-workspace` for
 each environment, then `metastore` once no environment uses it.
 
-`force_destroy` is on for the metastore, and for the catalog and external location in every environment
-(`storage_account.force_destroy` in `adls-storage-config.yaml`). Destroy therefore deletes their contents too,
-including the dropped test table the validation notebook leaves behind (restorable for 7 days).
+`force_destroy` is on for the catalog and external location in every environment
+(`storage_account.force_destroy` in `adls-storage-config.yaml`), so destroy deletes their contents too,
+including the dropped test table the validation notebook leaves behind (restorable for 7 days). It is off for
+the shared metastore: destroying the `metastore` stack fails while the metastore still has catalogs.
 
 ## DBX Architect Lab
 

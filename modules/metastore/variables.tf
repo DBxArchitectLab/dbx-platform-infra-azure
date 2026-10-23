@@ -17,7 +17,8 @@ variable "region" {
 
 variable "storage_root" {
   type        = string
-  description = "ADLS Gen2 abfss:// URI used as the metastore root."
+  default     = null
+  description = "Optional ADLS Gen2 abfss:// URI used as the metastore root. Null for a metastore without metastore-level storage (each catalog then brings its own). Changing it replaces the metastore."
 }
 
 variable "force_destroy" {

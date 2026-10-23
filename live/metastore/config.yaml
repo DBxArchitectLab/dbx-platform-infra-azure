@@ -1,10 +1,18 @@
 # Account-level Unity Catalog metastore (requires Databricks account admin / appropriate Entra role).
+# One metastore per region per account. Databricks created this one automatically with the first workspace in
+# centralus; the stack adopts it (import_id below) instead of creating a second, which Azure would refuse.
 metastore:
-  name: "metastore-dbx-architect-lab"
+  name: "metastore_azure_centralus"
   region: "centralus"
-  # ADLS Gen2 path; must be empty or dedicated prefix for the metastore root.
-  storage_root: "abfss://dbx@adlsdbxarchitectlab.dfs.core.windows.net/metastore"
-  force_destroy: true
+  # Adopt an existing metastore: its ID, from the account console (Catalog > the metastore > Metastore ID).
+  # While set, the stack imports that metastore into its state; once imported, the import is a no-op.
+  # Remove it (and set name / storage_root) to create a new metastore instead.
+  import_id: "e45fc942-890b-4a26-9479-a1b52c18bedc"
+  # Optional ADLS Gen2 root (abfss://...). The adopted metastore has none: each environment's catalog brings its own
+  # storage from workspace-bootstrap. Only set this when creating a new metastore; changing it replaces the metastore.
+  # storage_root: "abfss://dbx@adlsdbxarchitectlab.dfs.core.windows.net/metastore"
+  # Off: this is the shared metastore every environment uses, so a destroy must never delete it with its contents.
+  force_destroy: false
   # Optional: Unity Catalog owner principal name (e.g. group or user).
   owner: "DBX_Architect_Lab_Admin"
   # Optional: default data access using Azure Databricks Access Connector (resource ID).
