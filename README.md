@@ -335,9 +335,32 @@ The workspace stack reads its resource group; it does not create it.
 
 1. Azure portal → **Resource groups → Create**: name = `resource_group_name` from `config.yaml`
    (`rg-dbx-architect-lab-governance`), region **Central US**, the same subscription as the other environments.
-2. Open the new resource group → **Access control (IAM) → Add → Add role assignment** → **User Access
-   Administrator** → **Members**: the deployment service principal (`sp-dbx-platform-infra`). The bootstrap stack
-   needs it to give the access connector its role on the storage account.
+2. Give the deployment service principal (`sp-dbx-platform-infra`) **User Access Administrator** on the new resource
+   group. The bootstrap stack needs it to give the access connector its role on the storage account; without it,
+   the bootstrap apply fails at `azurerm_role_assignment.access_connector_storage_blob_data_contributor` with
+   `403 AuthorizationFailed ... does not have authorization to perform action
+   'Microsoft.Authorization/roleAssignments/write'`.
+
+   In the portal: the new resource group → **Access control (IAM) → Add → Add role assignment** → **User Access
+   Administrator** → **Members**: `sp-dbx-platform-infra`. Or with the Azure CLI, signed in as someone with Owner on
+   the subscription:
+
+   ```bash
+   SUB="<subscription-id>"
+   ENV="governance"
+   APP_ID="<your SP_CLIENT_ID value>"
+   # The service principal's object ID (for this repository: 6d9bf782-f3c1-4ba4-825c-235bf11e8418)
+   SP_OBJECT_ID=$(az ad sp show --id "$APP_ID" --query id -o tsv)
+
+   az role assignment create \
+     --assignee-object-id "$SP_OBJECT_ID" \
+     --assignee-principal-type ServicePrincipal \
+     --role "User Access Administrator" \
+     --scope "/subscriptions/$SUB/resourceGroups/rg-dbx-architect-lab-$ENV"
+   ```
+
+   A new role assignment can take a minute or two to apply. If the bootstrap already failed on it, re-run its apply
+   afterwards: what was already created is in Terraform state, so the run carries on from the role assignment.
 
 ### 6. Add the federated credential
 
