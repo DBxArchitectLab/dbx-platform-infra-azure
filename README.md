@@ -259,6 +259,127 @@ each environment, then `metastore` once no environment uses it.
 including the dropped test table the validation notebook leaves behind (restorable for 7 days). It is off for
 the shared metastore: destroying the `metastore` stack fails while the metastore still has catalogs.
 
+## Add a workspace
+
+Each workspace is an environment: a folder under `live/` with the same two stacks. These steps add one, using
+`governance` as the example (it was added this way). Replace `governance` with your environment's name throughout;
+keep it short, lowercase, letters only.
+
+### 1. Add a folder in `live/`
+
+Copy an existing environment, then remove anything Terraform generated:
+
+```bash
+cp -r live/prod live/governance
+rm -rf live/governance/workspace/.terraform* live/governance/workspace-bootstrap/.terraform*
+```
+
+`env.hcl`, `workspace/terragrunt.hcl` and `workspace-bootstrap/terragrunt.hcl` stay as they are: they are the same in
+every environment.
+
+### 2. Set the CIDR range and the names
+
+In `live/governance/config.yaml`:
+
+- **VNet range:** the next free `/24`, so the environments never overlap and can be peered later. Taken so far:
+  dev `10.0.0.0/24`, uat `10.0.1.0/24`, prod `10.0.2.0/24`, governance `10.0.3.0/24`; the next one is `10.0.4.0/24`.
+  Keep the same subnet layout inside it:
+
+  ```yaml
+  vnet_cidr: [ "10.0.3.0/24" ]
+  public_subnet_cidr: [ "10.0.3.0/26" ]
+  private_subnet_cidr: [ "10.0.3.64/26" ]
+  privatelink_subnet_cidr: [ "10.0.3.128/27" ]
+  ```
+
+- **Names:** end every name with the environment: `resource_group_name`, `workspace_name`,
+  `managed_resource_group_name`, `vnet_name`, the three subnet names, the three `private_endpoints` names,
+  `private_dns.resource_group_name`, and the `Environment` tag.
+
+In `live/governance/workspace-bootstrap/`, the names that must be unique:
+
+| File | Key | Rule |
+| --- | --- | --- |
+| `adls-storage-config.yaml` | `storage_account.name` | Globally unique in Azure, 3-24 lowercase letters and digits (`stdbxarchlabgovernance`) |
+| `adls-storage-config.yaml` | `container_name` | `dbx-architect-lab-governance` |
+| `catalog-config.yaml` | `catalog.name` | Unique in the shared metastore (`dbxarchitectlab_governance`) |
+| `external-location-config.yaml` | `external_location.name` | Unique in the shared metastore (`ext_loc_dbx_architect_lab_governance`) |
+| `access-connector-config.yaml` | `access_connector.name` | `ac-dbx-architect-lab-governance` |
+
+Replacing the old environment's name everywhere in the folder covers all of these:
+`grep -rl prod live/governance | xargs sed -i 's/prod/governance/g'`. Then fix the CIDRs by hand, and check that the
+storage account name is still 24 characters or fewer.
+
+### 3. Add the stacks to the workflow
+
+In `.github/workflows/terragrunt-deploy.yml`:
+
+- add the two stacks to the `stack` options: `governance-dbxarchitectlab-workspace` and
+  `governance-dbxarchitectlab-workspace-bootstrap`;
+- add `startsWith(inputs.stack, 'governance-') && 'governance' ||` to **both** environment expressions (`environment:`
+  and `DEPLOY_ENVIRONMENT:`), before the final `'dev'`.
+
+The stack-to-folder step needs no change: it maps `<env>-dbxarchitectlab-<stack>` to `live/<env>/<stack>` for any
+environment. A manually started workflow only shows the new options once this is on the branch you run it from.
+
+### 4. Create the GitHub environment and its secrets
+
+GitHub → **Settings → Environments → New environment** `governance`, then add the same six secrets as the other
+environments (see [GitHub Actions](#github-actions)), with the same values: `SP_CLIENT_ID`, `SP_CLIENT_SECRET`,
+`AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `DATABRICKS_ACCOUNT_ID`, `DATABRICKS_METASTORE_ID`. Add required reviewers
+if the environment needs an approval gate.
+
+### 5. Create the resource group in Azure
+
+The workspace stack reads its resource group; it does not create it.
+
+1. Azure portal → **Resource groups → Create**: name = `resource_group_name` from `config.yaml`
+   (`rg-dbx-architect-lab-governance`), region **Central US**, the same subscription as the other environments.
+2. Open the new resource group → **Access control (IAM) → Add → Add role assignment** → **User Access
+   Administrator** → **Members**: the deployment service principal (`sp-dbx-platform-infra`). The bootstrap stack
+   needs it to give the access connector its role on the storage account.
+
+### 6. Add the federated credential
+
+GitHub Actions signs in to Azure with OIDC, and Entra ID only accepts a token whose subject matches a federated
+credential on the service principal's app registration, one per GitHub environment. Without it, the **Azure login**
+step fails with `AADSTS700213: No matching federated identity record found`.
+
+Run this in Cloud Shell or Git Bash, signed in with `az login` as someone who can manage the app registration:
+
+```bash
+APP_ID="<your SP_CLIENT_ID value>"
+ENV="governance"
+
+cat > fic.json <<JSON
+{ "name": "github-dbx-platform-infra-azure-$ENV",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:DBxArchitectLab@336295900/dbx-platform-infra-azure@1398888571:environment:$ENV",
+  "audiences": ["api://AzureADTokenExchange"] }
+JSON
+az ad app federated-credential create --id "$APP_ID" --parameters fic.json
+
+# Check: the new environment should now be listed next to dev, uat and prod
+az ad app federated-credential list --id "$APP_ID" --query "[].subject" -o tsv
+```
+
+A new credential can take a minute to take effect.
+
+Steps 5 and 6 can also be done in one go, and safely repeated:
+`./scripts/setup-azure-prerequisites.sh --subscription <subscription-id> --environments governance` creates the
+resource group, the role assignment and the federated credential, and skips whatever already exists.
+
+### 7. Check, then deploy
+
+```bash
+./scripts/preflight-check.sh governance-dbxarchitectlab-workspace
+```
+
+Then, in GitHub Actions, the same order as every environment: `governance-dbxarchitectlab-workspace` plan, then
+apply; then `governance-dbxarchitectlab-workspace-bootstrap` plan, then apply. Run the validation notebook in the new
+workspace (`/Shared/platform/workspace-bootstrap-validation`) to confirm it works as designed. The workspace is
+assigned to the shared metastore automatically, through `DATABRICKS_METASTORE_ID`.
+
 ## DBX Architect Lab
 
 This repository is part of **DBX Architect Lab**: one enterprise Databricks platform on Azure, AWS and Google
