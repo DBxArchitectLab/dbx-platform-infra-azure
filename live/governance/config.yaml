@@ -1,0 +1,39 @@
+resource_group_name: "rg-dbx-architect-lab-governance"
+workspace_name: "dbw-dbx-architect-lab-governance"
+region: "centralus"
+pricing_tier: "premium"
+managed_resource_group_name: "rg-dbx-architect-lab-governance-managed"
+
+network:
+  no_public_ip: true
+  public_network_access_enabled: true
+  network_security_group_rules_required: "NoAzureDatabricksRules"
+
+  vnet_name: "vnet-dbx-architect-lab-governance"
+  public_subnet_name: "snet-dbx-architect-lab-governance-public"
+  private_subnet_name: "snet-dbx-architect-lab-governance-private"
+  privatelink_subnet_name: "snet-dbx-architect-lab-governance-privatelink"
+
+  vnet_cidr: [ "10.0.3.0/24" ]
+  public_subnet_cidr: [ "10.0.3.0/26" ]
+  private_subnet_cidr: [ "10.0.3.64/26" ]
+  privatelink_subnet_cidr: [ "10.0.3.128/27" ]
+
+private_endpoints:
+  ui_name: "pe-dbx-architect-lab-governance-ui"
+  auth_name: "pe-dbx-architect-lab-governance-auth"
+  backend_name: "pe-dbx-architect-lab-governance-backend"
+
+private_dns:
+  mode: "create"
+  name: "privatelink.azuredatabricks.net"
+  resource_group_name: "rg-dbx-architect-lab-governance"
+
+identity:
+  platform_admin_group_name: "DBX_Architect_Lab_Admin"
+
+tags:
+  Environment: "governance"
+  Application: "AzureDatabricks"
+  Compliance: "HIPAA"
+  Owner: "DbxArchitectLab"

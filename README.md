@@ -5,7 +5,8 @@ Part of **DBX Architect Lab**, an enterprise Databricks platform built in public
 [LinkedIn](https://www.linkedin.com/in/DBxArchitectLab) ·
 [GitHub](https://github.com/DBxArchitectLab)
 
-This repository provisions three Azure Databricks workspaces (dev, uat and prod, in `centralus`) that share one
+This repository provisions four Azure Databricks workspaces (dev, uat and prod, plus a dedicated governance
+workspace that governs them, all in `centralus`) that share one
 Unity Catalog metastore. Each workspace gets:
 
 - an existing resource group per environment
@@ -16,7 +17,7 @@ Unity Catalog metastore. Each workspace gets:
 - Secure Cluster Connectivity (no public IPs on cluster nodes)
 - NSG rules set to `NoAzureDatabricksRules` (no Databricks-managed NSG rules; Private Link is used instead)
 - 3 private endpoints
-- workspace public network access, controlled by config (on in dev, uat and prod, so the workspace is reachable both
+- workspace public network access, controlled by config (on in every environment, so the workspace is reachable both
   publicly and through its private endpoints)
 - Unity Catalog metastore assignment (the metastore is managed by a dedicated stack)
 - workspace admin assignment for an account-level group
@@ -225,11 +226,11 @@ Storage before Unity Catalog validates the external location.
 
 The **Terragrunt Deploy Stacks** workflow (`.github/workflows/terragrunt-deploy.yml`) is run manually (Actions →
 Terragrunt Deploy Stacks → Run workflow). Pick a stack (`metastore`, or `<env>-dbxarchitectlab-workspace` /
-`<env>-dbxarchitectlab-workspace-bootstrap` for `dev`, `uat` or `prod`) and an action (`validate`, `plan` (the
+`<env>-dbxarchitectlab-workspace-bootstrap` for `dev`, `uat`, `prod` or `governance`) and an action (`validate`, `plan` (the
 default), `apply` or `destroy`). The job runs in the matching GitHub environment (`prod-*` → `prod`, `uat-*` →
-`uat`, everything else, including `metastore` → `dev`) and reads its secrets from there.
+`uat`, `governance-*` → `governance`, everything else, including `metastore` → `dev`) and reads its secrets from there.
 
-Each of the `dev`, `uat` and `prod` environments needs these secrets:
+Each of the `dev`, `uat`, `prod` and `governance` environments needs these secrets:
 
 | Secret | Value |
 | --- | --- |

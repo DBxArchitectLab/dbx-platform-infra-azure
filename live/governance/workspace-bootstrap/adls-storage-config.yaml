@@ -1,0 +1,10 @@
+# ADLS Gen2 account created in the environment resource group (name must be globally unique).
+storage_account:
+  name: "stdbxarchlabgovernance"
+  # Container names: lowercase letters, numbers, and hyphens only (no underscores).
+  container_name: "dbx-architect-lab-governance"
+  account_tier: "Standard"
+  account_replication_type: "LRS"
+  # Delete the catalog and external location on destroy even if they still have contents or dependents (for example
+  # the dropped test table the validation notebook leaves behind, restorable for 7 days).
+  force_destroy: true
