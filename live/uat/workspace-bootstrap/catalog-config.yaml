@@ -7,6 +7,7 @@ catalog:
   grant_principals:
     - "DBX_Architect_Lab_Admin"
     - "dbxarchitectlab@gmail.com"
+    - "9a769c8e-a44b-4009-9378-719753df14c7"   # sp-dbx-lakehouse (dbx-lakehouse-ai-bi deployments)
   # grant_privileges:
   #   - "BROWSE"
   #   - "USE_CATALOG"
