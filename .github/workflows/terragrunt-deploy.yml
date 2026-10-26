@@ -16,6 +16,8 @@ on:
           - uat-dbxarchitectlab-workspace-bootstrap
           - prod-dbxarchitectlab-workspace
           - prod-dbxarchitectlab-workspace-bootstrap
+          - governance-dbxarchitectlab-workspace
+          - governance-dbxarchitectlab-workspace-bootstrap
       action:
         description: Terragrunt action
         type: choice
@@ -34,8 +36,8 @@ permissions:
 jobs:
   terragrunt:
     runs-on: ubuntu-latest
-    # prod-* and uat-* stacks use the matching GitHub environment; all others use "dev".
-    environment: ${{ startsWith(inputs.stack, 'prod-') && 'prod' || startsWith(inputs.stack, 'uat-') && 'uat' || 'dev' }}
+    # prod-*, uat-* and governance-* stacks use the matching GitHub environment; all others use "dev".
+    environment: ${{ startsWith(inputs.stack, 'prod-') && 'prod' || startsWith(inputs.stack, 'uat-') && 'uat' || startsWith(inputs.stack, 'governance-') && 'governance' || 'dev' }}
     # Required secrets (GitHub environment or repository secrets):
     #   SP_CLIENT_ID            - deployment service principal's application (client) ID, not its object ID
     #   SP_CLIENT_SECRET        - client secret value for that service principal
@@ -47,7 +49,7 @@ jobs:
       STACK: ${{ inputs.stack }}
       ACTION: ${{ inputs.action }}
       # Same expression as "environment" above; there is no context that exposes the job's environment.
-      DEPLOY_ENVIRONMENT: ${{ startsWith(inputs.stack, 'prod-') && 'prod' || startsWith(inputs.stack, 'uat-') && 'uat' || 'dev' }}
+      DEPLOY_ENVIRONMENT: ${{ startsWith(inputs.stack, 'prod-') && 'prod' || startsWith(inputs.stack, 'uat-') && 'uat' || startsWith(inputs.stack, 'governance-') && 'governance' || 'dev' }}
       TG_NON_INTERACTIVE: "true"
       # ARM_* are read by the azurerm provider, the azurerm state backend and the Databricks
       # account-level provider.

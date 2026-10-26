@@ -7,7 +7,7 @@
 # Options:
 #   --subscription ID      Target subscription (required; or set ARM_SUBSCRIPTION_ID)
 #   --region NAME          Azure region (default: centralus)
-#   --environments "LIST"  Environments to prepare (default: "dev uat prod")
+#   --environments "LIST"  Environments to prepare (default: "dev uat prod governance")
 #   --sp-name NAME         Deployment service principal display name (default: sp-dbx-platform-infra)
 #   --github-repo O/R      GitHub repo for federated credentials (default: taken from the git remote)
 #   --github-ids OID:RID   GitHub owner and repo IDs for the OIDC subject (default: looked up with gh/curl)
@@ -38,7 +38,7 @@ ENV_RG_PREFIX="rg-dbx-architect-lab"
 
 SUB="${ARM_SUBSCRIPTION_ID:-}"
 REGION="centralus"
-ENVIRONMENTS="dev uat prod"
+ENVIRONMENTS="dev uat prod governance"
 SP_NAME="sp-dbx-platform-infra"
 GITHUB_REPO=""
 GITHUB_IDS=""

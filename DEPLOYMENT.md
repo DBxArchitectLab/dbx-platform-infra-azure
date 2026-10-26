@@ -51,16 +51,16 @@ Values used throughout this guide (change them if yours differ):
 
 Edit and commit these before the first run.
 
-- [ ] **Unique names per environment in `live/<env>/workspace-bootstrap/`.** dev, uat and prod already use
+- [ ] **Unique names per environment in `live/<env>/workspace-bootstrap/`.** dev, uat, prod and governance already use
       distinct values. Keep them distinct if you change them (`preflight-check.sh` checks this):
   - `adls-storage-config.yaml` → `storage_account.name` (globally unique across Azure, 3–24 lowercase
     letters/digits)
-  - `catalog-config.yaml` → `catalog.name` (unique within the metastore, which dev/uat/prod share)
+  - `catalog-config.yaml` → `catalog.name` (unique within the metastore, which every environment shares)
   - `external-location-config.yaml` → `external_location.name` (unique within the metastore)
   - `access-connector-config.yaml` → `access_connector.name` (recommended, for clarity)
 - [ ] **Metastore owner:** `metastore.owner` in `live/metastore/config.yaml` must be a principal that exists in
       the new Databricks account. Recommended: the group name `DBX_Architect_Lab_Admin` (see step 3).
-- [ ] **(Optional) VNet ranges:** dev, uat and prod use `10.0.0.0/24`, `10.0.1.0/24` and `10.0.2.0/24`, so they
+- [ ] **(Optional) VNet ranges:** dev, uat, prod and governance use `10.0.0.0/24`, `10.0.1.0/24`, `10.0.2.0/24` and `10.0.3.0/24`, so they
       can be peered later. Keep them non-overlapping if you change them.
 
 ## 2. Azure prerequisites
@@ -104,6 +104,7 @@ az group create -n rg-dbx-architect-lab     -l "$REGION"   # state + metastore s
 az group create -n rg-dbx-architect-lab-dev -l "$REGION"
 az group create -n rg-dbx-architect-lab-uat -l "$REGION"
 az group create -n rg-dbx-architect-lab-prod -l "$REGION"
+az group create -n rg-dbx-architect-lab-governance -l "$REGION"
 ```
 
 ### 2.3 State and metastore storage account
@@ -141,7 +142,7 @@ az ad sp create-for-rbac --name "$SP_NAME" --role Contributor --scopes "/subscri
 APP_ID="<appId from the output>"
 
 # workspace-bootstrap creates a role assignment on its ADLS account. Include every environment, prod too.
-for rg in rg-dbx-architect-lab-dev rg-dbx-architect-lab-uat rg-dbx-architect-lab-prod; do
+for rg in rg-dbx-architect-lab-dev rg-dbx-architect-lab-uat rg-dbx-architect-lab-prod rg-dbx-architect-lab-governance; do
   az role assignment create --assignee "$APP_ID" --role "User Access Administrator" \
     --scope "/subscriptions/$SUB/resourceGroups/$rg"
 done
@@ -166,7 +167,7 @@ form `repo:<owner>@<owner-id>/<repo>@<repo-id>:environment:<env>`. Credentials m
 `gh api repos/DBxArchitectLab/dbx-platform-infra-azure --jq '.owner.id, .id'`.
 
 ```bash
-for env in dev uat prod; do
+for env in dev uat prod governance; do
   cat > fic.json <<JSON
 { "name": "github-dbx-platform-infra-azure-$env",
   "issuer": "https://token.actions.githubusercontent.com",
@@ -218,7 +219,7 @@ The service principal creates the catalog, storage credential and external locat
 
 1. **Merge to `main`.** A workflow that you start manually only appears in the **Actions** tab once it
    exists on the default branch.
-2. **Create environments** under **Settings → Environments**: `dev`, `uat`, `prod`. Consider adding
+2. **Create environments** under **Settings → Environments**: `dev`, `uat`, `prod`, `governance`. Consider adding
    required reviewers on `prod`.
 3. **Add these secrets to each environment:**
 
@@ -271,7 +272,7 @@ metastore. After that apply, plan reports no changes.
 
 Then copy the metastore ID from the account console (**Catalog → your metastore**) or from the
 `metastore_id` output at the end of the apply log. Set it as `DATABRICKS_METASTORE_ID` in the `dev`,
-`uat` and `prod` environments. They share the metastore because they're in the same region.
+`uat`, `prod` and `governance` environments. They share the metastore because they're in the same region.
 
 ### 6.2 dev
 
@@ -287,6 +288,14 @@ The workspace takes roughly 10–15 minutes to create.
 Repeat 6.2 with the `uat-*` stacks, then the `prod-*` stacks. Run `preflight-check.sh` for each stack first.
 Each environment needs its own resource group (step 2.2) and User Access Administrator on it (step 2.4).
 prod was missed once.
+
+### 6.4 governance
+
+The governance workspace (`live/governance`, VNet `10.0.3.0/24`) is the home of the platform-level governance and
+audit jobs from the `dbx-governance` repository; it governs dev, uat and prod. It is provisioned exactly like the
+others: repeat 6.2 with the `governance-*` stacks. It needs the `governance` GitHub environment with the same secrets
+and federated credential (step 4), its own resource group `rg-dbx-architect-lab-governance` and User Access
+Administrator on it (steps 2.2 and 2.4), and it shares the metastore.
 
 ## 7. Verify
 

@@ -52,7 +52,7 @@ STACK="${1:-all}"
 case "$STACK" in
   all) STACK_PATH="" ;;
   metastore) STACK_PATH="live/metastore" ;;
-  dev-*|uat-*|prod-*)
+  dev-*|uat-*|prod-*|governance-*)
     env=${STACK%%-*}
     [[ "$STACK" == *-workspace-bootstrap ]] && STACK_PATH="live/$env/workspace-bootstrap" || STACK_PATH="live/$env/workspace" ;;
   live/*) STACK_PATH="${STACK%/}" ;;
