@@ -97,3 +97,14 @@ module "secret_scope" {
 
   secret_scope_name = var.secret_scope_name
 }
+
+module "workspace_admins" {
+  source = "./modules/databricks-workspace-admins"
+
+  providers = {
+    databricks.account = databricks.account
+  }
+
+  workspace_id                      = var.workspace_id
+  service_principal_application_ids = var.workspace_admin_service_principals
+}

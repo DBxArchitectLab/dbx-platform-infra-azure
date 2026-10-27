@@ -22,7 +22,7 @@ Unity Catalog metastore. Each workspace gets:
 - Unity Catalog metastore assignment (the metastore is managed by a dedicated stack)
 - workspace admin assignment for an account-level group
 - workspace bootstrap (ADLS storage, access connector, storage credential, external location, catalog, default
-  catalog, cluster policies, secret scope, validation notebook)
+  catalog, cluster policies, secret scope, workspace admin service principals, validation notebook)
 
 ## Deployment pattern
 
@@ -32,7 +32,7 @@ Unity Catalog metastore. Each workspace gets:
 - `live/metastore/config.yaml` and `live/<env>/config.yaml` store each stack's inputs; `live/<env>/env.hcl` loads
   `config.yaml` and reads the subscription and Databricks account IDs from environment variables
 - `live/<env>/workspace-bootstrap/*-config.yaml` describe the bootstrap objects (storage, external location,
-  catalog, cluster policies, secret scope)
+  catalog, cluster policies, secret scope, workspace admin service principals)
 
 ## What this creates
 
@@ -64,6 +64,9 @@ Unity Catalog metastore. Each workspace gets:
   - Workspace default catalog set to that catalog
   - Databricks cluster policies (from `cluster-policy-config.yaml`)
   - Databricks secret scope (from `secret-scope-config.yaml`)
+  - Workspace admin for service principals, assigned through the account (from `workspace-admin-config.yaml`; in
+    dev, uat and prod: `sp-dbx-governance`, which the `dbx-governance` jobs need to manage groups in these
+    workspaces). Removing one from the file removes it from the workspace on the next apply
   - Validation notebook `/Shared/platform/workspace-bootstrap-validation`, with this environment's expected values
     in `/Shared/platform/workspace-bootstrap-validation.json`
     (`modules/workspace_bootstrap/notebooks/workspace-bootstrap-validation.py`; see

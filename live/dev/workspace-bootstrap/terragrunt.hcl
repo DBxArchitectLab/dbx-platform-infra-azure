@@ -24,6 +24,7 @@ locals {
   access_connector_config  = yamldecode(file("${get_terragrunt_dir()}/access-connector-config.yaml"))
   catalog_config           = yamldecode(file("${get_terragrunt_dir()}/catalog-config.yaml"))
   external_location_config = yamldecode(file("${get_terragrunt_dir()}/external-location-config.yaml"))
+  workspace_admin_config   = yamldecode(file("${get_terragrunt_dir()}/workspace-admin-config.yaml"))
 
   # Service principal that runs the deployment (application ID). It's added to the catalog and
   # external location grants so Terraform keeps the access it needs to manage them.
@@ -81,6 +82,8 @@ inputs = merge(
     ])
 
     secret_scope_name = local.secret_scope_config.secret_scope.name
+
+    workspace_admin_service_principals = try(local.workspace_admin_config.workspace_admins.service_principals, [])
 
     default_tags = merge(
       try(local.config.tags, {}),
