@@ -1,5 +1,7 @@
 # Service principals made workspace admin of this workspace (application IDs), assigned through the account.
 # Groups: the platform admin group (config.yaml identity.platform_admin_group_name) is assigned by the workspace stack.
+# Removing a service principal from this list removes it from the workspace entirely (not just its admin role):
+# sp-dbx-lakehouse also deploys dbx-lakehouse-ai-bi here, so re-add it as User first if it ever stops being admin.
 workspace_admins:
   service_principals:
-    - "d81cb8b1-92e7-4ab2-ac47-0143a2a1d6fc"   # sp-dbx-governance (dbx-governance group migration and audit jobs)
+    - "9a769c8e-a44b-4009-9378-719753df14c7"   # sp-dbx-lakehouse (dbx-lakehouse-ai-bi workspace group migration)

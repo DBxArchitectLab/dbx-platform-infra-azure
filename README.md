@@ -65,8 +65,8 @@ Unity Catalog metastore. Each workspace gets:
   - Databricks cluster policies (from `cluster-policy-config.yaml`)
   - Databricks secret scope (from `secret-scope-config.yaml`)
   - Workspace admin for service principals, assigned through the account (from `workspace-admin-config.yaml`; in
-    dev, uat and prod: `sp-dbx-governance`, which the `dbx-governance` jobs need to manage groups in these
-    workspaces). Removing one from the file removes it from the workspace on the next apply
+    dev, uat and prod: `sp-dbx-lakehouse`, which the `dbx-lakehouse-ai-bi` workspace group migration needs). Removing
+    one from the file removes it from the workspace entirely on the next apply, not just its admin role
   - Validation notebook `/Shared/platform/workspace-bootstrap-validation`, with this environment's expected values
     in `/Shared/platform/workspace-bootstrap-validation.json`
     (`modules/workspace_bootstrap/notebooks/workspace-bootstrap-validation.py`; see

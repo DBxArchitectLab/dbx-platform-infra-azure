@@ -7,7 +7,6 @@ catalog:
   grant_principals:
     - "DBX_Architect_Lab_Admin"
     - "dbxarchitectlab@gmail.com"
-    - "d81cb8b1-92e7-4ab2-ac47-0143a2a1d6fc"   # sp-dbx-governance (dbx-governance jobs: identity inventory tables)
   # grant_privileges:
   #   - "BROWSE"
   #   - "USE_CATALOG"
