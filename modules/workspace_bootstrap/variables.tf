@@ -182,3 +182,9 @@ variable "sql_warehouse_config_file" {
   description = "Path to SQL warehouse YAML config"
   type        = string
 }
+
+variable "workspace_admin_service_principals" {
+  description = "Application IDs of service principals made workspace admin (from workspace-admin-config.yaml)"
+  type        = list(string)
+  default     = []
+}

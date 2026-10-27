@@ -1,0 +1,5 @@
+# Service principals made workspace admin of this workspace (application IDs), assigned through the account.
+# Groups: the platform admin group (config.yaml identity.platform_admin_group_name) is assigned by the workspace stack.
+workspace_admins:
+  service_principals:
+    - "d81cb8b1-92e7-4ab2-ac47-0143a2a1d6fc"   # sp-dbx-governance (dbx-governance group migration and audit jobs)
