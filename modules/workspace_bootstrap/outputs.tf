@@ -5,10 +5,10 @@ output "cluster_policy_ids" {
 #output "cluster_ids" {
 #  value = module.cluster.cluster_ids
 #}
-#
-#output "sql_warehouse_ids" {
-#  value = module.sql_warehouse.sql_warehouse_ids
-#}
+
+output "sql_warehouse_ids" {
+  value = module.sql_warehouse.sql_warehouse_ids
+}
 
 output "storage_account_name" {
   description = "ADLS Gen2 storage account created for Unity Catalog"

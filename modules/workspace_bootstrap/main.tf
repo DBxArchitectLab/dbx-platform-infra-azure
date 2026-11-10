@@ -84,13 +84,15 @@ module "cluster_policy" {
 #  cluster_policy_ids = module.cluster_policy.cluster_policy_ids
 #  default_tags       = var.default_tags
 #}
-#
-#module "sql_warehouse" {
-#  source = "./modules/databricks-sql-warehouse"
-#
-#  sql_warehouses = local.sql_warehouses
-#  default_tags   = var.default_tags
-#}
+
+# SQL warehouses from sql-warehouse-config.yaml. Dev and prod define sql-wh-small: workspace governance reads
+# each workspace's information schema through it. An empty map creates none.
+module "sql_warehouse" {
+  source = "./modules/databricks-sql-warehouse"
+
+  sql_warehouses = local.sql_warehouses
+  default_tags   = var.default_tags
+}
 
 module "secret_scope" {
   source = "./modules/databricks-secret-scope"

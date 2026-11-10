@@ -80,9 +80,10 @@ Unity Catalog metastore. Each workspace gets:
     in `/Shared/platform/workspace-bootstrap-validation.json`
     (`modules/workspace_bootstrap/notebooks/workspace-bootstrap-validation.py`; see
     [DEPLOYMENT.md section 7](DEPLOYMENT.md#7-verify))
-  - Clusters and SQL warehouses (`cluster-config.yaml`, `sql-warehouse-config.yaml`) are defined but currently
-    disabled: their modules are commented out in `modules/workspace_bootstrap/main.tf`. Keep the files; the
-    module still reads them.
+  - SQL warehouses from `sql-warehouse-config.yaml`: `sql-wh-small` in dev and prod, which workspace governance
+    uses to read each workspace's information schema; none in uat and governance (`sql_warehouses: {}`)
+  - Clusters (`cluster-config.yaml`) are defined but currently disabled: their module is commented out in
+    `modules/workspace_bootstrap/main.tf`. Keep the file; the module still reads it.
 
 ## What this does not create
 
